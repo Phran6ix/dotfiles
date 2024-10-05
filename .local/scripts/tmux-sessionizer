@@ -1,0 +1,30 @@
+#!/bin/bash
+
+if [[ $# -eq 1 ]]; then
+    selected=$1
+else
+    selected=$(find ~/Documents/work ~/Documents/chernobyl/ ~/Documents/chernobyl/rust/ | fzf)
+fi
+
+if [[ -z $selected ]]; then
+    echo "over"
+    echo $selected
+    exit 0
+fi
+
+selected_name=$(basename "$selected" | tr . _)
+tmux_running=$(pgrep tmux)
+
+if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
+echo "We are here"
+    tmux new-session -s $selected_name -c $selected
+    exit 0
+fi
+echo "outside"
+if ! tmux has-session -t=$selected_name 2> /dev/null; then
+    echo "in here"
+    tmux new-session -ds $selected_name -c $selected
+fi
+echo "outside out"
+
+tmux switch-client -t $selected_name
